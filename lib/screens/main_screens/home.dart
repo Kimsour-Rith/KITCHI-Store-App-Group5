@@ -12,7 +12,6 @@ import 'package:multi_store_app/screens/galleries/kids_gallery.dart';
 import 'package:multi_store_app/screens/galleries/men_gallery.dart';
 import 'package:multi_store_app/screens/galleries/shoes_gallery.dart';
 import 'package:multi_store_app/screens/galleries/women_gallery.dart';
-
 import '../minor_screens/search.dart';
 import '../../widgets/fake_search.dart';
 
@@ -29,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return DefaultTabController(
       length: 9,
       child: Scaffold(
-        backgroundColor: Color(0xFFEDECF2),
+        backgroundColor: const Color(0xFFEDECF2),
         appBar: AppBar(
           elevation: 0,
           backgroundColor: Colors.white,

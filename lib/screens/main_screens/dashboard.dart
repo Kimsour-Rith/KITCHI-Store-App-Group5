@@ -6,7 +6,7 @@ import 'package:multi_store_app/screens/dashboard_components/my_store.dart';
 import 'package:multi_store_app/screens/dashboard_components/supplier_balance.dart';
 import 'package:multi_store_app/screens/dashboard_components/supplier_orders.dart';
 import 'package:multi_store_app/screens/dashboard_components/supplier_statics.dart';
-import 'package:multi_store_app/screens/main_screens/visit_store.dart';
+import 'package:multi_store_app/screens/minor_screens/visit_store.dart';
 import 'package:multi_store_app/widgets/appbar_widget.dart';
 import 'package:multi_store_app/widgets/nextscreen.dart';
 

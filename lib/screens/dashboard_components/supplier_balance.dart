@@ -36,7 +36,7 @@ class BalanceScreen extends StatelessWidget {
             appBar: AppBar(
               elevation: 0,
               backgroundColor: Colors.white,
-              title: AppBarTitle(title: 'Static Screen'),
+              title: AppBarTitle(title: 'Balance Screen'),
               leading: const AppBarBackButton(),
             ),
             body: Center(

@@ -3,10 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:multi_store_app/widgets/appbar_widget.dart';
+import 'package:multi_store_app/widgets/nextscreen.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_grid_view.dart';
 import 'package:staggered_grid_view_flutter/widgets/staggered_tile.dart';
 
 import '../../models/product_model.dart';
+import 'edit_store.dart';
 
 class VisitStore extends StatefulWidget {
   final String suppId;
@@ -52,8 +54,10 @@ class _VisitStoreState extends State<VisitStore> {
           return Scaffold(
             appBar: AppBar(
               leading: const AppBarPurpleBackButton(),
-              flexibleSpace:
-                  Image.asset("images/inapp/coverimage.jpg", fit: BoxFit.cover),
+              flexibleSpace: data['coverimage'] == ''
+                  ? Image.asset("images/inapp/coverimage.jpg",
+                      fit: BoxFit.cover)
+                  : Image.network(data['coverimage'], fit: BoxFit.cover),
               toolbarHeight: 100,
               title: Row(
                 children: [
@@ -102,7 +106,13 @@ class _VisitStoreState extends State<VisitStore> {
                                         width: 1, color: Colors.white),
                                     borderRadius: BorderRadius.circular(25)),
                                 child: MaterialButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    nextScreen(
+                                        context,
+                                        EditStore(
+                                          data: data,
+                                        ));
+                                  },
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceAround,

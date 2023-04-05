@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:multi_store_app/screens/main_screens/visit_store.dart';
+import 'package:multi_store_app/screens/minor_screens/visit_store.dart';
 import 'package:multi_store_app/widgets/appbar_widget.dart';
 import 'package:multi_store_app/widgets/nextscreen.dart';
 

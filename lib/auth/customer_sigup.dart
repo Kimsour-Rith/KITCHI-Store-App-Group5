@@ -11,7 +11,7 @@ class CustomerRegister extends StatefulWidget {
   const CustomerRegister({Key? key}) : super(key: key);
 
   @override
-  _CustomerRegisterState createState() => _CustomerRegisterState();
+  State<CustomerRegister> createState() => _CustomerRegisterState();
 }
 
 class _CustomerRegisterState extends State<CustomerRegister> {
@@ -24,7 +24,7 @@ class _CustomerRegisterState extends State<CustomerRegister> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
       GlobalKey<ScaffoldMessengerState>();
-  bool passwordVisible = false;
+  bool passwordVisible = true;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -96,7 +96,9 @@ class _CustomerRegisterState extends State<CustomerRegister> {
             'address': '',
             'cid': _uid
           });
-          Navigator.pushReplacementNamed(context, '/customer_login');
+
+          await Future.delayed(const Duration(microseconds: 100)).whenComplete(
+              () => Navigator.pushReplacementNamed(context, '/customer_login'));
           _formKey.currentState!.reset();
           setState(() {
             _imageFile = null;
@@ -267,9 +269,9 @@ class _CustomerRegisterState extends State<CustomerRegister> {
                                 },
                                 icon: Icon(
                                   passwordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                  color: Color(0xFF4C53A5),
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: const Color(0xFF4C53A5),
                                 )),
                             labelText: 'Password',
                             hintText: 'Enter your password',

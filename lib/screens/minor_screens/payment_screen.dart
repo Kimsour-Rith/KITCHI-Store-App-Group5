@@ -1,17 +1,27 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:multi_store_app/providers/stripe_id.dart';
 import 'package:multi_store_app/widgets/appbar_widget.dart';
 import 'package:multi_store_app/widgets/yellow_button.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
-
+import 'package:flutter_stripe/flutter_stripe.dart';
 import '../../providers/cart_provider.dart';
+import 'package:http/http.dart' as http;
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key});
+  final String name;
+  final String phone;
+  final String address;
+  const PaymentScreen(
+      {super.key,
+      required this.name,
+      required this.phone,
+      required this.address});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -226,7 +236,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: YellowButton(
                           label: 'Confirm ${totalPaid.toStringAsFixed(2)} USD',
-                          onPressed: () {
+                          onPressed: () async {
                             if (selectedValue == 1) {
                               showModalBottomSheet(
                                 context: context,
@@ -259,10 +269,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                                     .doc(orderId)
                                                     .set({
                                                   'cid': data['cid'],
-                                                  'custname': data['name'],
+                                                  'custname': widget.name,
                                                   'email': data['email'],
-                                                  'address': data['address'],
-                                                  'phone': data['phone'],
+                                                  'address': widget.address,
+                                                  'phone': widget.phone,
                                                   'profileimage':
                                                       data['profileimage'],
                                                   'sid': item.suppId,
@@ -305,11 +315,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                                   });
                                                 });
                                               }
-                                              context.read<Cart>().clearCart();
-                                              Navigator.popUntil(
-                                                  context,
-                                                  ModalRoute.withName(
-                                                      '/customer_home'));
+                                              await Future.delayed(
+                                                      const Duration(
+                                                          microseconds: 100))
+                                                  .whenComplete(() {
+                                                context
+                                                    .read<Cart>()
+                                                    .clearCart();
+                                                Navigator.popUntil(
+                                                    context,
+                                                    ModalRoute.withName(
+                                                        '/customer_home'));
+                                              });
                                             },
                                             width: 0.9)
                                       ],
@@ -318,6 +335,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 ),
                               );
                             } else if (selectedValue == 2) {
+                              int payment = totalPaid.round();
+                              int pay = payment * 100;
+                              await makePayment(data, pay.toString());
                               print("visa");
                             } else if (selectedValue == 3) {
                               print("paypal");
@@ -334,5 +354,97 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: CircularProgressIndicator(),
           );
         });
+  }
+
+  Map<String, dynamic>? paymentIntentData;
+
+  Future<void> makePayment(dynamic data, String total) async {
+    // create PaymentIntnet
+    // initPaymentSheet
+    //displayPaymentSheet
+    paymentIntentData = await createPaymentIntnet(total, 'USD');
+    await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: paymentIntentData!['client_secret'],
+            applePay: true,
+            googlePay: true,
+            testEnv: true,
+            merchantDisplayName: 'ANNIE',
+            merchantCountryCode: 'KH'));
+    await displayPaymentSheet(data);
+  }
+
+  createPaymentIntnet(String total, String currency) async {
+    Map<String, dynamic> body = {
+      'amount': total,
+      'currency': currency,
+      'payment_method_types[]': 'card'
+    };
+    var response = await http.post(
+        Uri.parse('https://api.stripe.com/v1/payment_intents'),
+        body: body,
+        headers: {
+          'Authorization': 'Bearer $stripeSecretKey',
+          'content_type': "application/x-www-form-urlencoded"
+        });
+    return jsonDecode(response.body);
+  }
+
+  displayPaymentSheet(var data) async {
+    try {
+      await Stripe.instance
+          .presentPaymentSheet(
+              parameters: PresentPaymentSheetParameters(
+                  clientSecret: paymentIntentData!['client_secret'],
+                  confirmPayment: true))
+          .then((value) async {
+        paymentIntentData = null;
+        print("paid");
+        showProgress();
+        for (var item in context.read<Cart>().getItems) {
+          CollectionReference orderRef =
+              FirebaseFirestore.instance.collection('orders');
+          orderId = const Uuid().v4();
+          await orderRef.doc(orderId).set({
+            'cid': data['cid'],
+            'custname': data['name'],
+            'email': data['email'],
+            'address': data['address'],
+            'phone': data['phone'],
+            'profileimage': data['profileimage'],
+            'sid': item.suppId,
+            'proid': item.documentId,
+            'orderid': orderId,
+            'ordername': item.name,
+            'orderimage': item.imagesUrl.first,
+            'orderqty': item.qty,
+            'orderprice': item.qty * item.price,
+            'deliverystatus': 'preparing',
+            'deliverydate': '',
+            'orderdate': DateTime.now(),
+            'paymentstatus': 'paid online',
+            'orderreview': false,
+          }).whenComplete(() async {
+            await FirebaseFirestore.instance
+                .runTransaction((transaction) async {
+              DocumentReference documentReference = FirebaseFirestore.instance
+                  .collection("products")
+                  .doc(item.documentId);
+              DocumentSnapshot snapshot2 =
+                  await transaction.get(documentReference);
+              transaction.update(documentReference,
+                  {'instock': snapshot2['instock'] - item.qty});
+            });
+          });
+        }
+        await Future.delayed(const Duration(microseconds: 100))
+            .whenComplete(() {
+          context.read<Cart>().clearCart();
+          Navigator.popUntil(context, ModalRoute.withName('/customer_home'));
+        });
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 }

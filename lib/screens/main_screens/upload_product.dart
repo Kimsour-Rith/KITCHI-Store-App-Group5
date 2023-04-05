@@ -52,7 +52,7 @@ class _UploadProductScreenState extends State<UploadProductScreen> {
       subCategList = accessories;
     } else if (value == 'shoes') {
       subCategList = shoes;
-    } else if (value == 'home & garden') {
+    } else if (value == 'homeandgarden') {
       subCategList = homeandgarden;
     } else if (value == 'beauty') {
       subCategList = beauty;
@@ -140,7 +140,7 @@ class _UploadProductScreenState extends State<UploadProductScreen> {
           subCategList = [];
           imagesUrlList = [];
         });
-        // _formkey.currentState!.reset();
+        _formkey.currentState!.reset();
       });
     } else {
       print("no images");

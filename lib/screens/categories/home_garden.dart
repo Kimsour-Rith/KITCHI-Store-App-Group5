@@ -44,7 +44,7 @@ class HomeAndGardenCategory extends StatelessWidget {
         Positioned(
             bottom: 0,
             right: 0,
-            child: SliderBar(size: size, maincategName: 'Home & Garden'))
+            child: SliderBar(size: size, maincategName: 'homeandgarden'))
       ]),
     );
   }

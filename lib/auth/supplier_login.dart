@@ -19,6 +19,10 @@ class _SupplierLoginState extends State<SupplierLogin> {
       GlobalKey<ScaffoldMessengerState>();
   bool passwordVisible = false;
 
+  void navigateToHomeScreen() {
+    Navigator.pushReplacementNamed(context, '/supplier_home');
+  }
+
   void logIn() async {
     setState(() {
       processing = true;
@@ -27,10 +31,19 @@ class _SupplierLoginState extends State<SupplierLogin> {
       try {
         await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: email, password: password);
+        await FirebaseAuth.instance.currentUser!.reload();
 
-        _formKey.currentState!.reset();
-
-        Navigator.pushReplacementNamed(context, '/supplier_home');
+        if (FirebaseAuth.instance.currentUser!.emailVerified) {
+          _formKey.currentState!.reset();
+          await Future.delayed(const Duration(microseconds: 100))
+              .whenComplete(() => navigateToHomeScreen());
+        } else {
+          MyMessageHandler.showSnackBar(
+              _scaffoldKey, 'please check your inbox');
+          setState(() {
+            processing = false;
+          });
+        }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
           setState(() {
